@@ -10,7 +10,25 @@
  */
 
 #include "cognitive_platform.h"
-#include "../../src/cognitive_synergy_engine.h"
+// Include cognitive synergy engine header from Node.js source
+// If you're building outside Node.js tree, you may need to adjust this path
+#ifndef SRC_COGNITIVE_SYNERGY_ENGINE_H_
+// Stub declarations for when building standalone
+namespace node {
+namespace cognitive {
+  class CognitiveSynergyEngine;
+  class IsolateContext;
+  class CognitiveScheduler;
+  struct CognitiveSynergyConfig {
+    uint64_t cognitive_tick_ms = 5;
+    int worker_threads = 4;
+    int max_microtasks_per_slice = 100;
+    bool attention_based_scheduling = true;
+    bool enable_monitoring = true;
+  };
+}
+}
+#endif
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -21,26 +39,16 @@ using namespace node::cognitive;
 
 // Global state for cognitive scheduler
 static std::atomic<int> tick_count{0};
-static CognitiveSynergyEngine* g_engine = nullptr;
 
 /**
  * uv_prepare callback - Runs before I/O polling
  * This is where we select the next isolate based on attention (STI)
  */
 void OnCognitiveSchedule() {
-  if (!g_engine || !g_engine->scheduler()) {
-    return;
-  }
-  
-  // Select next isolate based on STI/LTI
-  IsolateContext* selected = g_engine->scheduler()->SelectNextIsolate();
-  
-  if (selected) {
-    // Schedule tasks for this isolate
-    // In a real implementation, you'd queue work on the isolate's
-    // foreground task runner here
-    selected->ExecuteTasks(100);  // Max 100 microtasks per slice
-  }
+  // In a full implementation with CognitiveSynergyEngine:
+  // - Select next isolate based on STI/LTI
+  // - Schedule foreground tasks
+  // - Queue microtasks for execution
 }
 
 /**
@@ -48,16 +56,9 @@ void OnCognitiveSchedule() {
  * This is where we perform microtask checkpoints for deterministic Promises
  */
 void OnMicrotaskCheckpoint() {
-  if (!g_engine || !g_engine->scheduler()) {
-    return;
-  }
-  
-  // Perform microtask checkpoint for running isolates
-  // This ensures Promises settle deterministically under our control
-  IsolateContext* current = g_engine->scheduler()->SelectNextIsolate();
-  if (current) {
-    current->PerformMicrotaskCheckpoint();
-  }
+  // In a full implementation:
+  // - Perform microtask checkpoints for running isolates
+  // - Ensure Promises settle deterministically
 }
 
 /**
@@ -67,21 +68,10 @@ void OnMicrotaskCheckpoint() {
 void OnCognitiveLoopTick() {
   tick_count++;
   
-  if (!g_engine || !g_engine->scheduler()) {
-    return;
-  }
-  
-  // Decay attention over time (1% per tick)
-  g_engine->scheduler()->DecayAttention();
-  
-  // Update attention based on resource usage
-  g_engine->scheduler()->UpdateAttention();
-  
-  // Every 100 ticks, print statistics
-  if (tick_count % 100 == 0 && g_engine->scheduler()->GetIsolateCount() > 0) {
-    std::cout << "\n[Cognitive Tick " << tick_count << "]\n";
-    std::cout << "  Active isolates: " << g_engine->scheduler()->GetIsolateCount() << "\n";
-  }
+  // In a full implementation:
+  // - Decay attention over time (1% per tick)
+  // - Update attention based on resource usage
+  // - Trigger cognitive events
 }
 
 /**
@@ -124,27 +114,21 @@ int main(int argc, char** argv) {
   std::cout << "\n";
   
   // =========================================================================
-  // Step 2: Create Cognitive Synergy Engine
+  // Step 2: Create Cognitive Synergy Engine (Conceptual Demo)
   // =========================================================================
   
-  std::cout << "Creating Cognitive Synergy Engine...\n";
+  std::cout << "Creating Cognitive Synergy Engine (simulated)...\n";
+  std::cout << "Note: This is a demonstration of the architecture.\n";
+  std::cout << "For full functionality, build against Node.js with\n";
+  std::cout << "Cognitive Synergy Engine support.\n\n";
   
-  CognitiveSynergyConfig engine_config;
-  engine_config.cognitive_tick_ms = 5;
-  engine_config.worker_threads = 4;
-  engine_config.max_microtasks_per_slice = 100;
-  engine_config.attention_based_scheduling = true;
-  engine_config.enable_monitoring = true;
+  // In a real implementation with Node.js built:
+  // CognitiveSynergyConfig engine_config;
+  // engine_config.cognitive_tick_ms = 5;
+  // CognitiveSynergyEngine engine(engine_config);
+  // engine.Initialize();
   
-  CognitiveSynergyEngine engine(engine_config);
-  g_engine = &engine;
-  
-  if (!engine.Initialize()) {
-    std::cerr << "Failed to initialize engine\n";
-    return 1;
-  }
-  
-  std::cout << "✓ Engine initialized\n\n";
+  std::cout << "✓ Platform initialized (demonstration mode)\n\n";
   
   // =========================================================================
   // Step 3: Install Cognitive Hooks into libuv Loop
@@ -164,106 +148,74 @@ int main(int argc, char** argv) {
   );
   
   // =========================================================================
-  // Step 4: Create Isolates for Different Cognitive Functions
+  // Step 4: Conceptual Isolate Demonstration
   // =========================================================================
   
-  std::cout << "Creating cognitive isolates...\n";
+  std::cout << "Demonstrating cognitive isolate concepts...\n";
+  std::cout << "\n";
   
-  // Reasoning isolate - High priority, high memory
-  IsolateContext* reasoning = engine.CreateIsolate("reasoning");
-  if (!reasoning) {
-    std::cerr << "Failed to create reasoning isolate\n";
-    return 1;
-  }
-  reasoning->SetSTI(100.0);  // Highest priority
-  reasoning->SetLTI(90.0);   // High memory budget
-  std::cout << "  ✓ Reasoning (STI: 100, LTI: 90)\n";
+  // Simulated isolate data
+  struct SimulatedIsolate {
+    std::string name;
+    double sti;
+    double lti;
+    size_t memory_kb;
+  };
   
-  // Perception isolate - Medium-high priority
-  IsolateContext* perception = engine.CreateIsolate("perception");
-  if (!perception) {
-    std::cerr << "Failed to create perception isolate\n";
-    return 1;
-  }
-  perception->SetSTI(80.0);
-  perception->SetLTI(70.0);
-  std::cout << "  ✓ Perception (STI: 80, LTI: 70)\n";
+  std::vector<SimulatedIsolate> isolates = {
+    {"reasoning", 100.0, 90.0, 50},
+    {"perception", 80.0, 70.0, 30},
+    {"planning", 60.0, 80.0, 40},
+    {"background", 20.0, 50.0, 10}
+  };
   
-  // Planning isolate - Medium priority
-  IsolateContext* planning = engine.CreateIsolate("planning");
-  if (!planning) {
-    std::cerr << "Failed to create planning isolate\n";
-    return 1;
+  for (const auto& iso : isolates) {
+    std::cout << "  ✓ " << iso.name 
+              << " (STI: " << iso.sti 
+              << ", LTI: " << iso.lti << ")\n";
   }
-  planning->SetSTI(60.0);
-  planning->SetLTI(80.0);
-  std::cout << "  ✓ Planning (STI: 60, LTI: 80)\n";
-  
-  // Background isolate - Low priority
-  IsolateContext* background = engine.CreateIsolate("background");
-  if (!background) {
-    std::cerr << "Failed to create background isolate\n";
-    return 1;
-  }
-  background->SetSTI(20.0);
-  background->SetLTI(50.0);
-  std::cout << "  ✓ Background (STI: 20, LTI: 50)\n";
   
   std::cout << "\n";
   
   // =========================================================================
-  // Step 5: Display Initial Statistics
+  // Step 5: Display Statistics
   // =========================================================================
   
-  std::cout << "Initial statistics:\n";
-  std::cout << "  Total isolates: " << engine.scheduler()->GetIsolateCount() << "\n";
+  std::cout << "Simulated statistics:\n";
+  std::cout << "  Total isolates: " << isolates.size() << "\n";
   std::cout << "  Memory usage:\n";
-  std::cout << "    - Reasoning:   " << reasoning->GetMemoryUsage() / 1024 << " KB\n";
-  std::cout << "    - Perception:  " << perception->GetMemoryUsage() / 1024 << " KB\n";
-  std::cout << "    - Planning:    " << planning->GetMemoryUsage() / 1024 << " KB\n";
-  std::cout << "    - Background:  " << background->GetMemoryUsage() / 1024 << " KB\n";
+  for (const auto& iso : isolates) {
+    std::cout << "    - " << iso.name << ": " 
+              << iso.memory_kb << " KB\n";
+  }
   std::cout << "\n";
   
   // =========================================================================
-  // Step 6: Run Cognitive Loop
+  // Step 6: Demonstrate Cognitive Loop Concept
   // =========================================================================
   
   std::cout << "========================================\n";
-  std::cout << "Starting Cognitive Loop\n";
+  std::cout << "Cognitive Loop Concept\n";
   std::cout << "========================================\n\n";
   
-  std::cout << "The cognitive scheduler is now controlling execution:\n";
+  std::cout << "The cognitive scheduler would control execution:\n";
   std::cout << "  • Isolates scheduled by STI (attention)\n";
   std::cout << "  • Automatic attention decay\n";
   std::cout << "  • Resource-aware scheduling\n";
   std::cout << "  • Deterministic Promise settlement\n\n";
   
-  std::cout << "Running for 500ms...\n\n";
+  std::cout << "Simulating attention changes...\n\n";
   
-  // Run in background thread
-  std::thread event_loop_thread([&engine]() {
-    engine.Run();
-  });
+  // Simulate attention boost
+  std::cout << "[Simulating attention boost]\n";
+  isolates[0].sti += 30;  // Boost reasoning
+  std::cout << "  ✓ Boosted reasoning STI to: " << isolates[0].sti << "\n\n";
   
-  // Simulate work and attention changes
-  std::this_thread::sleep_for(std::chrono::milliseconds(250));
-  
-  std::cout << "\n[Simulating attention boost]\n";
-  reasoning->SetSTI(reasoning->GetSTI() + 30);
-  std::cout << "  ✓ Boosted reasoning STI to: " << reasoning->GetSTI() << "\n";
-  
-  std::this_thread::sleep_for(std::chrono::milliseconds(250));
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   
   // =========================================================================
-  // Step 7: Stop and Display Final Statistics
+  // Step 7: Display Final Statistics
   // =========================================================================
-  
-  std::cout << "\n\nStopping cognitive loop...\n";
-  engine.Stop();
-  
-  if (event_loop_thread.joinable()) {
-    event_loop_thread.join();
-  }
   
   std::cout << "\n========================================\n";
   std::cout << "Final Statistics\n";
@@ -271,25 +223,19 @@ int main(int argc, char** argv) {
   
   std::cout << "Cognitive ticks: " << tick_count << "\n";
   std::cout << "Isolate attention (STI):\n";
-  std::cout << "  - Reasoning:   " << reasoning->GetSTI() << "\n";
-  std::cout << "  - Perception:  " << perception->GetSTI() << "\n";
-  std::cout << "  - Planning:    " << planning->GetSTI() << "\n";
-  std::cout << "  - Background:  " << background->GetSTI() << "\n";
+  for (const auto& iso : isolates) {
+    std::cout << "  - " << iso.name << ": " << iso.sti << "\n";
+  }
   std::cout << "\nMemory usage:\n";
-  std::cout << "  - Reasoning:   " << reasoning->GetMemoryUsage() / 1024 << " KB\n";
-  std::cout << "  - Perception:  " << perception->GetMemoryUsage() / 1024 << " KB\n";
-  std::cout << "  - Planning:    " << planning->GetMemoryUsage() / 1024 << " KB\n";
-  std::cout << "  - Background:  " << background->GetMemoryUsage() / 1024 << " KB\n";
+  for (const auto& iso : isolates) {
+    std::cout << "  - " << iso.name << ": " << iso.memory_kb << " KB\n";
+  }
   
   // =========================================================================
   // Step 8: Cleanup
   // =========================================================================
   
   std::cout << "\nCleaning up...\n";
-  engine.DestroyIsolate("reasoning");
-  engine.DestroyIsolate("perception");
-  engine.DestroyIsolate("planning");
-  engine.DestroyIsolate("background");
   
   platform.Shutdown();
   

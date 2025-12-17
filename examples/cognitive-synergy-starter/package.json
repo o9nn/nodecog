@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "Starter template for Cognitive Synergy Engine (V8+libuv under cognitive control)",
   "main": "lib/cognitive_api.js",
-  "type": "module",
   "scripts": {
     "build": "mkdir -p build && cd build && cmake .. && make",
     "clean": "rm -rf build",
-    "test": "node --experimental-loader ./lib/loader.mjs examples/basic.js",
+    "test": "node examples/basic.js",
+    "test:loader": "node --experimental-loader ./lib/loader.mjs examples/nodespace.js",
     "embedder": "./build/cognitive-embedder"
   },
   "keywords": [
