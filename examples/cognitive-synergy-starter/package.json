@@ -1,0 +1,28 @@
+{
+  "name": "cognitive-synergy-starter",
+  "version": "1.0.0",
+  "description": "Starter template for Cognitive Synergy Engine (V8+libuv under cognitive control)",
+  "main": "lib/cognitive_api.js",
+  "type": "module",
+  "scripts": {
+    "build": "mkdir -p build && cd build && cmake .. && make",
+    "clean": "rm -rf build",
+    "test": "node --experimental-loader ./lib/loader.mjs examples/basic.js",
+    "embedder": "./build/cognitive-embedder"
+  },
+  "keywords": [
+    "v8",
+    "libuv",
+    "opencog",
+    "cognitive",
+    "attention",
+    "scheduling"
+  ],
+  "author": "OpenCog Community",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}
