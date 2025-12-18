@@ -529,7 +529,9 @@ C++ Kernel Functions (Echo.Kern)
 - Phase 5: 6 weeks (ESN)
 - Phase 6: 8 weeks (Distributed)
 - Phase 7: 13 weeks (Advanced Features)
-- **Total**: ~61 weeks (~14 months) for Phases 1-7
+- **Total**: ~61 weeks (~15 months) for Phases 1-7
+
+Note: Some phases may run in parallel where dependencies allow, potentially reducing total calendar time.
 
 ### Compute Resources
 - CI/CD infrastructure for multi-platform builds

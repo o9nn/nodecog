@@ -393,12 +393,19 @@ All glossary terms integrate with the Cognitive Synergy Engine through:
 
 ### Configure Flags
 ```bash
+# Note: These are proposed flags for future implementation
+# Integration with existing Node.js ./configure system requires upstream changes
+
 ./configure \
-  --experimental-kernel-backend \     # Enable Echo.Kern
-  --with-ggml \                       # Include GGML
-  --with-llama-cpp \                  # Include llama.cpp
-  --with-blas=openblas \              # BLAS implementation
+  --experimental-kernel-backend \     # Enable Echo.Kern (requires code changes)
+  --with-ggml \                       # Include GGML (requires vendoring)
+  --with-llama-cpp \                  # Include llama.cpp (requires vendoring)
+  --with-blas=openblas \              # BLAS implementation (optional)
   --opencog-enable                    # Enable OpenCog features
+
+# Current implementation uses environment variables instead:
+# NODE_OPENCOG_ENABLE=1 - Enable NodeSpace tracking (available now)
+# NODE_OPENCOG_AUTO_ANALYZE=1 - Enable autonomous agents (available now)
 ```
 
 ### Environment Variables

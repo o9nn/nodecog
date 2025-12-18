@@ -19,10 +19,12 @@ This manifest defines the kernel-level primitives that map OpenCog cognitive sub
 int kern_boot_stage0(struct ggml_context **ctx, size_t mem_size);
 ```
 **Parameters**:
-- `ctx`: Output pointer to GGML context
+- `ctx`: Output pointer to GGML context (caller receives ownership)
 - `mem_size`: Initial memory pool size in bytes
 
 **Returns**: 0 on success, negative error code on failure  
+**Cleanup**: Caller must call `ggml_free(ctx)` on shutdown  
+**Error Handling**: On failure, *ctx is set to NULL and error code indicates failure reason  
 **Dependencies**: None (bare metal entry point)  
 **Performance Target**: < 1ms initialization  
 **Integration**: Called from Node.js process startup before V8 initialization

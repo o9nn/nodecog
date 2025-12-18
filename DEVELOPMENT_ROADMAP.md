@@ -438,12 +438,15 @@ NODE_OPENCOG_KERNEL_BACKEND=1 node app.js
 
 ### 1.2 Event Loop & Async Operations
 
-#### **Bootstrap** - [Planned - Phase 5]
-- **Integration**: Cognitive pre-initialization hooks
-- **Implementation**: AtomSpace initialization during bootstrap
-- **Goal**: Early cognitive system setup
-- **Priority**: Medium
-- **Dependencies**: Core infrastructure
+#### **Bootstrap** - [Phase 0 - CRITICAL]
+- **Integration**: Kernel bootstrap during Node.js startup (4 stages)
+- **Implementation**: GGML init → HyperGraph FS → Scheduler → Event Loop
+- **Goal**: Early cognitive system setup before V8 initialization
+- **Kernel Functions**: `kern_boot_stage0()` through `stage3()`
+- **Priority**: CRITICAL
+- **Dependencies**: GGML library, Node.js build system
+- **Performance Target**: < 10ms total bootstrap time
+- **Note**: See Phase 0 for detailed implementation plan
 
 #### **JIT** (Just In Time) - [Monitoring - Phase 6]
 - **Integration**: JIT compilation monitoring via cognitive agents
