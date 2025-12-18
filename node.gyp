@@ -101,6 +101,8 @@
       'src/cognitive_synergy_engine.h',
       'src/cognitive_napi_bridge.cc',
       'src/cognitive_napi_bridge.h',
+      'src/kern_boot.cc',
+      'src/kern_boot.h',
       'src/node.cc',
       'src/node_api.cc',
       'src/node_binding.cc',
@@ -863,6 +865,8 @@
       'include_dirs': [
         'src',
         'deps/postject',
+        'deps/ggml/include',
+        'deps/ggml/src',
         '<(SHARED_INTERMEDIATE_DIR)' # for node_natives.h
       ],
       'dependencies': [
@@ -875,6 +879,27 @@
 
       'sources': [
         '<@(node_sources)',
+        # GGML kernel backend sources
+        'deps/ggml/src/ggml.c',
+        'deps/ggml/src/ggml.cpp',
+        'deps/ggml/src/ggml-alloc.c',
+        'deps/ggml/src/ggml-backend.cpp',
+        'deps/ggml/src/ggml-backend-reg.cpp',
+        'deps/ggml/src/ggml-quants.c',
+        'deps/ggml/src/ggml-threading.cpp',
+        'deps/ggml/src/ggml-opt.cpp',
+        'deps/ggml/src/gguf.cpp',
+        # GGML CPU backend
+        'deps/ggml/src/ggml-cpu/ggml-cpu.c',
+        'deps/ggml/src/ggml-cpu/ggml-cpu.cpp',
+        'deps/ggml/src/ggml-cpu/ops.cpp',
+        'deps/ggml/src/ggml-cpu/binary-ops.cpp',
+        'deps/ggml/src/ggml-cpu/unary-ops.cpp',
+        'deps/ggml/src/ggml-cpu/quants.c',
+        'deps/ggml/src/ggml-cpu/repack.cpp',
+        'deps/ggml/src/ggml-cpu/vec.cpp',
+        'deps/ggml/src/ggml-cpu/traits.cpp',
+        'deps/ggml/src/ggml-cpu/hbm.cpp',
         # Dependency headers
         'deps/v8/include/v8.h',
         'deps/postject/postject-api.h',
