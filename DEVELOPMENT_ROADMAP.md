@@ -1,7 +1,7 @@
 # Development Roadmap
 ## Comprehensive Integration of Node.js Technologies with OpenCog Orchestration Framework
 
-This roadmap outlines the integration and implementation strategy for comprehensive Node.js technologies, tools, and concepts into the OpenCog orchestration framework with specific linkages to the **Distributed NodeSpace** and **Cognitive Synergy Engine**.
+This roadmap outlines the integration and implementation strategy for comprehensive Node.js technologies, tools, and concepts into the OpenCog orchestration framework with specific linkages to the **Distributed NodeSpace**, **Cognitive Synergy Engine**, and **Echo.Kern Kernel Primitives**.
 
 ---
 
@@ -9,36 +9,399 @@ This roadmap outlines the integration and implementation strategy for comprehens
 
 This document maps each technology, standard, and concept from the Node.js ecosystem to specific integration points within the OpenCog cognitive architecture. The roadmap is organized into phases, with clear dependencies, priorities, and implementation strategies that leverage:
 
-- **AtomSpace**: Typed hypergraph knowledge representation
+- **AtomSpace**: Typed hypergraph knowledge representation (backed by GGML tensors in kernel layer)
 - **Distributed NodeSpace**: Module and dependency tracking across nodes
-- **Cognitive Synergy Engine**: V8+libuv cognitive scheduler
+- **Cognitive Synergy Engine**: V8+libuv cognitive scheduler with attention-based isolate management
+- **Echo.Kern**: C/C++ kernel primitives implementing cognitive functions as GGML tensor operations
 - **Agent System**: Autonomous cognitive agents for orchestration
-- **Attention Mechanism**: ECAN-based resource allocation
+- **Attention Mechanism**: ECAN-based resource allocation (STI/LTI)
+- **Kernel ABI**: Stable interface between JavaScript and tensor-based cognitive operations
+
+### Architecture Layers
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  JavaScript Layer (Node.js Application & OpenCog API)       │
+│  - AtomSpace.js, Agent.js, NodeSpace.js                     │
+│  - process.opencog runtime API                              │
+└────────────────────────┬────────────────────────────────────┘
+                         │ N-API Bridge
+┌────────────────────────▼────────────────────────────────────┐
+│  C++ Kernel Layer (Echo.Kern)                               │
+│  - kern_boot_stage0..3: Bootstrap & initialization          │
+│  - dtesn_sched_*: Cognitive scheduler primitives            │
+│  - hgfs_*: Hypergraph filesystem (AtomSpace allocator)      │
+│  - pln_*: Probabilistic logic networks (inference)          │
+│  - kern_syscall_*: Cognitive system calls                   │
+│  - dist_*: Distributed AtomSpace synchronization            │
+└────────────────────────┬────────────────────────────────────┘
+                         │ GGML Tensor API
+┌────────────────────────▼────────────────────────────────────┐
+│  GGML Tensor Backend                                         │
+│  - Tensor allocations and operations                         │
+│  - Memory pool management                                    │
+│  - Hypergraph as tensor structure                            │
+└────────────────────────┬────────────────────────────────────┘
+                         │ llama.cpp Kernels
+┌────────────────────────▼────────────────────────────────────┐
+│  Hardware Acceleration                                       │
+│  - BLAS (OpenBLAS, MKL, Accelerate)                         │
+│  - CUDA (NVIDIA GPUs)                                        │
+│  - Metal (Apple Silicon)                                     │
+│  - CPU vectorization (AVX2, AVX512, NEON)                   │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ### Quick Reference
 
-| Phase | Status | Priority | Timeline | Key Components |
-|-------|--------|----------|----------|----------------|
-| Phase 1: Core Infrastructure | ✅ Complete | Critical | - | JS, ESM, CJS, V8, VM |
-| Phase 2: Development Tools | ✅ Core Complete | High | - | ECMA, TC39, CI, API, CLI |
-| Phase 3: Distributed Systems | 🔄 In Progress | Critical | - | IPC, HTTP, HTTPS, JSON |
-| Phase 4: Advanced Cognitive | ✅ Complete | Critical | - | MOSES, NLP, Planning, UI |
-| Phase 5: Production & Operations | 📋 Planned | High | Q1 2026 | npm, CVE, Deps, LTS, EOL |
-| Phase 6: Performance | 📋 Planned | Medium | Q2-Q3 2026 | RSS, OOM, Code cache, Snapshot |
-| Phase 7: Development Experience | 📋 Planned | Low | Q4 2026 | IDE, Debugger, Inspector |
-| Phase 8: Web & Standards | 📋 Planned | Low | 2027 | WASM, WASI, W3C, IETF |
-| Phase 9: Internationalization | 📋 Planned | Low | 2027 | ICU, CLDR, Intl |
-| Phase 10: Platform-Specific | 📋 Planned | Low | 2027 | ETW, FFDC |
-| Phase 11: Design Patterns | 📋 Planned | Low | 2027 | MVC, OOP, Primordials |
-| Phase 12: Memory Management | 📋 Planned | Medium | 2027 | RAII, FS, EOF |
+| Phase | Status | Priority | Timeline | Key Components | Kernel Integration |
+|-------|--------|----------|----------|----------------|-------------------|
+| Phase 0: Kernel Foundation | 📋 Planned | CRITICAL | Q1 2026 | GGML, Kernel ABI, Bootstrap | kern_boot_*, hgfs_*, dtesn_* |
+| Phase 1: Core Infrastructure | ✅ Complete | Critical | ✅ Done | JS, ESM, CJS, V8, VM | V8 isolate management |
+| Phase 2: Development Tools | ✅ Core Complete | High | ✅ Done | ECMA, TC39, CI, API, CLI | Code analysis agents |
+| Phase 3: Distributed Systems | 🔄 In Progress | Critical | Q1 2026 | IPC, HTTP, HTTPS, JSON | dist_atomspace_sync |
+| Phase 4: Advanced Cognitive | ✅ Complete | Critical | ✅ Done | MOSES, NLP, Planning, UI | pln_*, esn_* (planned) |
+| Phase 5: Production & Operations | 📋 Planned | High | Q2 2026 | npm, CVE, Deps, LTS, EOL | Security scanning kernel |
+| Phase 6: Performance | 📋 Planned | Medium | Q2-Q3 2026 | RSS, OOM, Code cache, Snapshot | Memory profiling kernel |
+| Phase 7: Development Experience | 📋 Planned | Low | Q4 2026 | IDE, Debugger, Inspector | Debug kernel hooks |
+| Phase 8: Web & Standards | 📋 Planned | Low | 2027 | WASM, WASI, W3C, IETF | WASM tensor interop |
+| Phase 9: Internationalization | 📋 Planned | Low | 2027 | ICU, CLDR, Intl | Locale tensors |
+| Phase 10: Platform-Specific | 📋 Planned | Low | 2027 | ETW, FFDC | Platform diagnostics |
+| Phase 11: Design Patterns | 📋 Planned | Low | 2027 | MVC, OOP, Primordials | Pattern recognition |
+| Phase 12: Memory Management | 📋 Planned | Medium | 2027 | RAII, FS, EOF | Advanced memory ops |
 
-**Coverage**: 78/78 glossary terms (100% complete)
+**Coverage**: 78/78 glossary terms (100% mapped)  
+**Kernel Functions**: 35 primitives defined (see [KERNEL_FUNCTION_MANIFEST.md](KERNEL_FUNCTION_MANIFEST.md))  
+**Implementation Status**: Phase 0 - Architecture complete, implementation pending (see [KERNEL_STATUS_REPORT.md](KERNEL_STATUS_REPORT.md))
+
+---
+
+## Phase 0: Kernel Foundation (NEW - CRITICAL PATH)
+**Status**: 📋 Planned  
+**Priority**: CRITICAL  
+**Timeline**: Q1 2026 (10-12 weeks)  
+**Dependencies**: None (baseline for all tensor-based operations)
+
+### Overview
+
+This phase establishes the Echo.Kern kernel layer that implements OpenCog cognitive primitives as high-performance C/C++ tensor operations using GGML and llama.cpp backends. This is the **foundational layer** that all subsequent cognitive operations will build upon.
+
+**Key Deliverables**:
+- GGML integration into Node.js build system
+- Hypergraph Filesystem (tensor-based AtomSpace allocator)
+- DTESN Cognitive Scheduler (attention-based task scheduling)
+- Kernel ABI and N-API bridge
+- Bootstrap stages 0-3
+- Performance validation (sub-millisecond operations)
+
+### 0.1 Kernel Architecture & Build System
+
+#### **GGML** (Georgi Gerganov Machine Learning Library) - [Planned]
+- **Integration**: Vendor GGML into `deps/ggml` or as git submodule
+- **Purpose**: Tensor computation backend for all cognitive operations
+- **Build**: Modify `node.gyp` to include GGML sources and link against BLAS
+- **Platforms**: Linux (x64, ARM64), macOS (x64, ARM64), Windows (x64)
+- **Priority**: CRITICAL
+- **Kernel Functions**: Foundation for all `hgfs_*`, `pln_*`, `esn_*` operations
+
+**Technical Approach**:
+```c
+// Example: GGML context initialization in kern_boot_stage0()
+struct ggml_init_params params = {
+    .mem_size   = 128 * 1024 * 1024,  // 128MB initial pool
+    .mem_buffer = NULL,                // Allocate on heap
+    .no_alloc   = false
+};
+struct ggml_context *ctx = ggml_init(params);
+```
+
+**Build Integration**:
+```python
+# node.gyp additions
+'sources': [
+  'deps/ggml/ggml.c',
+  'deps/ggml/ggml-alloc.c',
+  'src/kern_boot.cc',
+  'src/kern_hypergraph_fs.cc',
+  'src/kern_scheduler.cc',
+  # ... additional kernel sources
+],
+'libraries': [
+  '-lblas',  # Or -framework Accelerate on macOS
+],
+```
+
+---
+
+#### **llama.cpp Integration** - [Planned]
+- **Purpose**: Optimized tensor kernels for reservoir computing and matrix ops
+- **Integration**: Use llama.cpp's quantization and kernel implementations
+- **Features**: 
+  - Q4_K, Q8_0 quantized tensors for memory efficiency
+  - Optimized matrix multiplication (GEMM)
+  - RoPE (Rotary Position Embedding) for temporal reasoning
+- **Priority**: HIGH
+- **Use Cases**: ESN reservoirs, attention spreading, pattern matching
+
+---
+
+### 0.2 Bootstrap & Initialization (Stages 0-3)
+
+#### **Bootstrap** - [Phase 0 - CRITICAL]
+- **Integration**: Kernel bootstrap during Node.js process startup
+- **Implementation**: Four-stage initialization before V8 isolate creation
+- **Kernel Functions**:
+  - `kern_boot_stage0()`: GGML context init (< 1ms)
+  - `kern_boot_stage1_init_hypergraph_fs()`: AtomSpace allocator (< 2ms)
+  - `kern_boot_stage2_init_scheduler()`: DTESN scheduler (< 3ms)
+  - `kern_boot_stage3_init_cognitive_loop()`: libuv integration (< 2ms)
+- **Performance Target**: < 10ms total bootstrap time
+- **Priority**: CRITICAL
+- **Dependencies**: GGML library
+
+**Integration Point**: `src/node.cc` process startup
+```cpp
+// Early in Node.js startup, before V8 initialization
+void InitializeKernel() {
+  struct ggml_context *ctx;
+  CHECK_EQ(kern_boot_stage0(&ctx, 128 * 1024 * 1024), 0);
+  
+  struct hgfs_config hg_config = { .max_depth = 16 };
+  CHECK_EQ(kern_boot_stage1_init_hypergraph_fs(ctx, &hg_config), 0);
+  
+  struct dtesn_sched_context *sched;
+  struct dtesn_config sched_config = { 
+    .reservoir_size = 1000,
+    .tick_rate_us = 5 
+  };
+  CHECK_EQ(kern_boot_stage2_init_scheduler(&sched, &sched_config), 0);
+  
+  // Stage 3 integrates with libuv (done in CognitiveSynergyEngine)
+}
+```
+
+**NodeSpace Link**: Early kernel initialization provides memory allocator for all subsequent AtomSpace operations
+**Cognitive Synergy Link**: Kernel scheduler becomes backend for isolate scheduling
+
+---
+
+### 0.3 Hypergraph Filesystem (AtomSpace Kernel Backend)
+
+#### **AtomSpace Kernel Implementation** - [Phase 0 - CRITICAL]
+- **Integration**: Replace JavaScript AtomSpace backend with GGML tensors
+- **Implementation**: Hypergraph as tensor structure
+- **Kernel Functions**:
+  - `hgfs_alloc(size, depth)`: Allocate node as GGML tensor (≤ 100ns)
+  - `hgfs_free(ptr, depth)`: Free node (≤ 50ns)
+  - `hgfs_edge(src, dst, type, weight)`: Create link (< 200ns)
+  - `hgfs_query_neighbors(node, type, results, max)`: Pattern match (< 5µs)
+- **Performance Target**: Orders of magnitude faster than JavaScript
+- **Priority**: CRITICAL
+- **Integration**: JavaScript AtomSpace API transparently uses kernel
+
+**Memory Layout**:
+```
+Hypergraph Node (GGML Tensor):
+┌────────────────────────────────┐
+│ ggml_tensor metadata           │
+│ - type: GGML_TYPE_F32          │
+│ - dims: [feature_size]         │
+│ - data: float32 feature vector │
+├────────────────────────────────┤
+│ Cognitive metadata             │
+│ - sti: float (attention)       │
+│ - lti: float (importance)      │
+│ - tv_strength: float           │
+│ - tv_confidence: float         │
+│ - membrane_depth: uint32       │
+└────────────────────────────────┘
+
+Hypergraph Edge (Link):
+- Stored as adjacency tensor
+- Type-tagged (INHERITANCE, SIMILARITY, etc.)
+- Weight stored in edge tensor
+```
+
+**System Calls**:
+```c
+// JavaScript → N-API → Kernel
+uint64_t kern_syscall_atomspace_add_node(
+    const char *type,      // "CONCEPT", "PREDICATE", etc.
+    const char *name,      // Atom name
+    struct truth_value *tv // Truth value
+);
+
+uint64_t kern_syscall_atomspace_add_link(
+    const char *type,      // Link type
+    uint64_t *targets,     // Target atom handles
+    size_t arity,          // Number of targets
+    struct truth_value *tv
+);
+```
+
+**NodeSpace Link**: All module atoms (BUILTIN_MODULE, NPM_MODULE, etc.) stored as hypergraph nodes
+**Performance**: 10-100x faster than JavaScript AtomSpace
+
+---
+
+### 0.4 DTESN Cognitive Scheduler
+
+#### **Scheduler Kernel** - [Phase 0 - CRITICAL]
+- **Integration**: Attention-based task scheduling as tensor operations
+- **Implementation**: ESN (Echo State Network) reservoir for scheduler state
+- **Kernel Functions**:
+  - `dtesn_sched_tick()`: Execute one scheduler tick (≤ 5µs)
+  - `dtesn_sched_enqueue_task(task)`: Enqueue with STI/LTI (< 1µs)
+  - `dtesn_sched_update_attention(id, sti_delta, lti_delta)`: Dynamic updates (< 500ns)
+  - `dtesn_sched_decay_attention(decay_rate)`: Forgetting (< 100µs for 10K tasks)
+- **Performance Target**: ≤ 5µs per scheduler tick
+- **Priority**: CRITICAL
+- **Integration**: Cognitive Synergy Engine uses kernel scheduler
+
+**Task Descriptor**:
+```c
+struct task_descriptor {
+    void (*fn)(void *arg);       // Task function
+    void *arg;                   // Arguments
+    double sti;                  // Short-term importance
+    double lti;                  // Long-term importance
+    uint32_t membrane_depth;     // P-system hierarchy level
+    uint64_t deadline_ns;        // Real-time deadline (0 = none)
+};
+```
+
+**Scheduling Algorithm** (tensor-based):
+```c
+// Select task with highest attention (STI + LTI weighted)
+IsolateContext* SelectNextTask(dtesn_sched_context *sched) {
+    // Compute attention scores as GGML tensor operation
+    struct ggml_tensor *scores = ggml_add(
+        ggml_scale(sched->sti_tensor, 0.7),  // 70% weight on STI
+        ggml_scale(sched->lti_tensor, 0.3)   // 30% weight on LTI
+    );
+    
+    // Find argmax using GGML
+    int32_t selected_idx = ggml_argmax(scores);
+    return sched->tasks[selected_idx];
+}
+```
+
+**Cognitive Synergy Link**: Replaces C++ CognitiveScheduler with tensor-based kernel
+**Attention Link**: STI/LTI values directly drive scheduling decisions
+
+---
+
+### 0.5 Kernel ABI & N-API Bridge
+
+#### **ABI** (Application Binary Interface) - [Phase 0 - HIGH]
+- **Integration**: Stable kernel ABI for JavaScript/C++ boundary
+- **Implementation**: Version-tagged function exports
+- **Kernel Functions**:
+  - `kern_abi_get_version()`: Get kernel version
+  - `kern_abi_export_to_napi(env, exports)`: Register N-API bindings
+- **Compatibility**: Semantic versioning for kernel ABI
+- **Priority**: HIGH
+- **Purpose**: Enable dynamic kernel updates without Node.js rebuild
+
+**ABI Version Structure**:
+```c
+struct kern_version {
+    uint16_t major;        // Breaking changes
+    uint16_t minor;        // New features
+    uint16_t patch;        // Bug fixes
+    const char *git_hash;  // Build identifier
+};
+
+// Example: v1.0.0-a1b2c3d
+```
+
+**N-API Bridge**:
+```cpp
+// src/cognitive_kernel_napi_bridge.cc
+napi_value InitKernelBindings(napi_env env, napi_value exports) {
+    // Export kernel functions to JavaScript
+    EXPORT_NAPI_FUNCTION(env, exports, "atomspaceAddNode", 
+                         KernelAtomspaceAddNode);
+    EXPORT_NAPI_FUNCTION(env, exports, "atomspaceAddLink",
+                         KernelAtomspaceAddLink);
+    EXPORT_NAPI_FUNCTION(env, exports, "patternMatch",
+                         KernelPatternMatch);
+    // ... all 35 kernel functions
+    return exports;
+}
+```
+
+**JavaScript API** (transparent kernel backend):
+```javascript
+// lib/internal/opencog/atomspace.js
+class AtomSpace {
+  addNode(type, name, tv = null) {
+    if (process.config.variables.use_kernel_backend) {
+      // Use kernel implementation (10-100x faster)
+      const handle = kernelBindings.atomspaceAddNode(type, name, tv);
+      return new Atom(handle, this);
+    } else {
+      // Fallback to JavaScript implementation
+      return this._addNodeJS(type, name, tv);
+    }
+  }
+}
+```
+
+**Configuration**:
+```bash
+# Enable kernel backend (when implemented)
+NODE_OPENCOG_KERNEL_BACKEND=1 node app.js
+
+# Feature flag for gradual rollout
+./configure --experimental-kernel-backend
+```
+
+---
+
+### 0.6 Performance Targets & Validation
+
+#### Performance Benchmarks
+| Operation | JavaScript | Kernel Target | Improvement |
+|-----------|-----------|---------------|-------------|
+| Add Node | ~1000ns | < 5µs | N/A (different impl) |
+| Add Link | ~2000ns | < 10µs | N/A (different impl) |
+| Pattern Match (10 nodes) | ~50ms | < 100µs | 500x |
+| Attention Spread (1000 atoms) | ~100ms | < 100µs | 1000x |
+| Scheduler Tick | ~300µs | ≤ 5µs | 60x |
+| Memory Allocation | V8 GC | ≤ 100ns | Custom allocator |
+
+**Validation Strategy**:
+1. **Correctness**: Compare kernel outputs with JavaScript reference
+2. **Performance**: Microbenchmarks for each kernel function
+3. **Integration**: End-to-end tests with full cognitive system
+4. **Stress**: 100K+ atoms, 10K+ concurrent tasks
+5. **Memory**: Valgrind, AddressSanitizer for leak detection
+
+---
+
+### 0.7 Phase 0 Success Criteria
+
+- [ ] GGML integrated into Node.js build system
+- [ ] All 4 bootstrap stages functional
+- [ ] Hypergraph filesystem operational (hgfs_*)
+- [ ] DTESN scheduler operational (dtesn_sched_*)
+- [ ] N-API bridge complete with all 35+ kernel functions
+- [ ] Performance targets met (within 2x acceptable)
+- [ ] Zero regressions in existing JavaScript tests
+- [ ] Comprehensive unit test coverage (>90%)
+- [ ] Documentation complete (Doxygen + user guides)
+- [ ] CI/CD pipeline for multi-platform kernel builds
+
+**Estimated Effort**: 10-12 weeks with 2-3 senior C++ engineers  
+**Risk**: MEDIUM-HIGH (new architecture, aggressive performance targets)  
+**Mitigation**: Incremental rollout, feature flags, extensive testing
 
 ---
 
 ## Phase 1: Core Infrastructure Integration (Foundation)
 **Status**: ✅ Complete  
-**Dependencies**: None  
+**Dependencies**: Phase 0 (kernel layer provides backend)  
 **Priority**: Critical
 
 ### 1.1 JavaScript Runtime & Module Systems
