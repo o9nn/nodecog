@@ -1,4 +1,5 @@
 #include "kern_boot.h"
+#include "kern_scheduler.h"
 #include <cstring>
 #include <cstdlib>
 #include "deps/ggml/include/ggml.h"
@@ -35,9 +36,17 @@ struct dtesn_sched_context {
   struct ggml_context* ctx;
   struct ggml_tensor* reservoir_state;
   
-  // libuv timer for scheduler ticks
-  uv_timer_t timer;
-  bool timer_initialized;
+  // libuv handles for event-loop integration
+  uv_timer_t   timer;
+  bool         timer_initialized;
+
+  // uv_prepare fires before each I/O poll – used to call dtesn_sched_tick().
+  uv_prepare_t prepare_handle;
+  bool         prepare_initialized;
+
+  // uv_idle fires when the loop is idle – used to decay attention values.
+  uv_idle_t    idle_handle;
+  bool         idle_initialized;
 };
 
 // Stage 0: Minimal Bootstrap
@@ -135,7 +144,9 @@ int kern_boot_stage2_init_scheduler(struct dtesn_sched_context** sched,
   ctx->lti_threshold = config->lti_threshold > 0 ? config->lti_threshold : 0.3;
   ctx->enable_adaptive_scheduling = config->enable_adaptive_scheduling;
   ctx->ctx = g_ggml_ctx;
-  ctx->timer_initialized = false;
+  ctx->timer_initialized   = false;
+  ctx->prepare_initialized = false;
+  ctx->idle_initialized    = false;
   
   // TODO: Initialize ESN reservoir as GGML tensors
   // This will be implemented in Phase 5 (ESN Reservoir)
@@ -148,6 +159,18 @@ int kern_boot_stage2_init_scheduler(struct dtesn_sched_context** sched,
   *sched = ctx;
   
   return 0;  // Success
+}
+
+// uv_prepare callback: runs dtesn_sched_tick() before each I/O poll.
+static void sched_prepare_callback(uv_prepare_t* handle) {
+  (void)handle;
+  dtesn_sched_tick();
+}
+
+// uv_idle callback: decays attention values during idle time.
+static void sched_idle_callback(uv_idle_t* handle) {
+  (void)handle;
+  dtesn_sched_decay_attention(0.99);
 }
 
 // Timer callback for cognitive scheduler ticks
@@ -189,10 +212,60 @@ int kern_boot_stage3_init_cognitive_loop(struct uv_loop_s* loop,
                           cycle_time_ms);  // Repeat interval
   
   if (result != 0) {
+    // Note: uv_close is asynchronous; the caller must keep the sched context
+    // alive until the close callback fires (or run the loop to drain it).
     uv_close(reinterpret_cast<uv_handle_t*>(&sched->timer), nullptr);
     sched->timer_initialized = false;
     return -3;  // Cognitive loop initialization failed
   }
+
+  // ── uv_prepare: call dtesn_sched_tick() before each I/O poll ──────────────
+  result = uv_prepare_init(loop, &sched->prepare_handle);
+  if (result != 0) {
+    // -4: uv_prepare handle initialization failed
+    uv_timer_stop(&sched->timer);
+    uv_close(reinterpret_cast<uv_handle_t*>(&sched->timer), nullptr);
+    sched->timer_initialized = false;
+    return -4;
+  }
+
+  result = uv_prepare_start(&sched->prepare_handle, sched_prepare_callback);
+  if (result != 0) {
+    // -5: uv_prepare_start failed
+    uv_close(reinterpret_cast<uv_handle_t*>(&sched->prepare_handle), nullptr);
+    uv_timer_stop(&sched->timer);
+    uv_close(reinterpret_cast<uv_handle_t*>(&sched->timer), nullptr);
+    sched->timer_initialized = false;
+    return -5;
+  }
+  sched->prepare_initialized = true;
+
+  // ── uv_idle: decay attention when the loop is otherwise idle ──────────────
+  result = uv_idle_init(loop, &sched->idle_handle);
+  if (result != 0) {
+    // -6: uv_idle handle initialization failed
+    uv_prepare_stop(&sched->prepare_handle);
+    uv_close(reinterpret_cast<uv_handle_t*>(&sched->prepare_handle), nullptr);
+    sched->prepare_initialized = false;
+    uv_timer_stop(&sched->timer);
+    uv_close(reinterpret_cast<uv_handle_t*>(&sched->timer), nullptr);
+    sched->timer_initialized = false;
+    return -6;
+  }
+
+  result = uv_idle_start(&sched->idle_handle, sched_idle_callback);
+  if (result != 0) {
+    // -7: uv_idle_start failed
+    uv_close(reinterpret_cast<uv_handle_t*>(&sched->idle_handle), nullptr);
+    uv_prepare_stop(&sched->prepare_handle);
+    uv_close(reinterpret_cast<uv_handle_t*>(&sched->prepare_handle), nullptr);
+    sched->prepare_initialized = false;
+    uv_timer_stop(&sched->timer);
+    uv_close(reinterpret_cast<uv_handle_t*>(&sched->timer), nullptr);
+    sched->timer_initialized = false;
+    return -7;
+  }
+  sched->idle_initialized = true;
   
   g_cognitive_loop_initialized = true;
   
@@ -209,6 +282,18 @@ void dtesn_sched_destroy(struct dtesn_sched_context* sched) {
   if (sched->timer_initialized) {
     uv_timer_stop(&sched->timer);
     uv_close(reinterpret_cast<uv_handle_t*>(&sched->timer), nullptr);
+  }
+
+  // Stop and close uv_prepare handle if initialized
+  if (sched->prepare_initialized) {
+    uv_prepare_stop(&sched->prepare_handle);
+    uv_close(reinterpret_cast<uv_handle_t*>(&sched->prepare_handle), nullptr);
+  }
+
+  // Stop and close uv_idle handle if initialized
+  if (sched->idle_initialized) {
+    uv_idle_stop(&sched->idle_handle);
+    uv_close(reinterpret_cast<uv_handle_t*>(&sched->idle_handle), nullptr);
   }
   
   // TODO: Free GGML tensors when implemented
